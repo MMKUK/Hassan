@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hassan</title>
+<meta name="description" content="Hassan — transparent settlement. Blocks, wallet, and peer escrow.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:* https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect width=%2240%22 height=%2240%22 rx=%229%22 fill=%22%230a2540%22/><circle cx=%2220%22 cy=%2220%22 r=%2212%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%222.5%22/><circle cx=%2220%22 cy=%2220%22 r=%223%22 fill=%22%233d9cf0%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a class="brand" href="#/">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="10" fill="#0a2540"/>
+        <circle cx="20" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="20" cy="20" r="3" fill="#3d9cf0"/>
+      </svg>
+      <b>Hassan</b>
+    </a>
+
+    <div class="nav-search">
+      <span class="ic" aria-hidden="true">⌕</span>
+      <input id="navQ" spellcheck="false" autocomplete="off" placeholder="Search height, hash, address…">
+      <div id="navSuggest" class="suggest hidden"></div>
+    </div>
+
+    <div class="nav-links" id="navLinks">
+      <a href="#/" data-route="">Home</a>
+      <a href="#/wallet" data-route="wallet">Wallet</a>
+      <a href="#/escrow" data-route="escrow">Escrow</a>
+      <a href="#/blocks" data-route="blocks">Blocks</a>
+      <a href="#/mempool" data-route="mempool">Mempool</a>
+      <details class="nav-more">
+        <summary>More</summary>
+        <div class="nav-more-panel">
+          <a href="#/fees" data-route="fees">Fees</a>
+          <a href="#/supply" data-route="supply">Supply</a>
+          <a href="#/network" data-route="network">Network</a>
+          <a href="#/mining" data-route="mining">Mining</a>
+          <a href="#/registry" data-route="registry">Registry</a>
+          <a href="#/custody" data-route="custody">Custody</a>
+          <a href="#/pruning" data-route="pruning">Pruning</a>
+          <a href="#/analytics" data-route="analytics">Analytics</a>
+          <a href="#/audit" data-route="audit">Audit</a>
+          <a href="#/labels" data-route="labels">Labels</a>
+          <a href="#/versionbits" data-route="versionbits">Versionbits</a>
+        </div>
+      </details>
+    </div>
+
+    <div class="net">
+      <button id="netBtn" class="net-btn" title="Node endpoint">
+        <span id="netLabel" class="mono">local</span>
+      </button>
+      <div id="netPanel" class="net-panel hidden">
+        <label>Node API</label>
+        <input id="netInput" class="mono" placeholder="http://127.0.0.1:8080" spellcheck="false" autocomplete="off">
+        <div class="net-actions">
+          <button id="netSave" class="btn-sm primary">Connect</button>
+          <button id="netReset" class="btn-sm">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="live"><span class="dot" id="dot"></span><span id="live">…</span></div>
+  </div>
+</nav>
+
+<main id="app"></main>
+
+<footer>
+  <div class="foot-in">
+    <div class="foot-bottom" id="footMeta">Hassan</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast">copied</div>
+<script src="app.js"></script>
+</body>
+</html>

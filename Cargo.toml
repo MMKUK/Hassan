@@ -1,0 +1,56 @@
+[workspace]
+members = [".", "tuep-escrow"]
+resolver = "2"
+
+[package]
+name = "hassan"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hassan Foundation"]
+description = "Hassan ($HSN): transparent settlement BlockDAG — ML-DSA-87 + Blake3-512, optional SLH-DSA dual-sig on custody, Birth Certificates, titles/escrow, AI block trace"
+license = "MIT"
+# With two binaries (the node and the wallet CLI), tell `cargo run` to launch
+# the node by default. Use `cargo run --bin hassan-wallet` for the wallet.
+default-run = "hassan"
+
+[dependencies]
+tuep-escrow = { path = "tuep-escrow" }
+blake3 = "1.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rand = "0.8"
+hex = "0.4"
+bincode = "1.3"
+rayon = "1.8" # Parallel execution
+num-bigint = "0.5.1"
+fips204 = { version = "0.4.6", default-features = false, features = ["default-rng", "ml-dsa-87"] } # ML-DSA-87 (FIPS 204) — highest Dilithium parameter set, post-quantum
+fips203 = { version = "0.4.3", default-features = false, features = ["default-rng", "ml-kem-768"] } # ML-KEM-768 (FIPS 203) for hybrid PQ wire key agreement
+winterfell = "0.13.1" # STARK prover/verifier for per-block sequential-work proofs
+snow = "0.10.0"
+ctrlc = { version = "3", features = ["termination"] } # flush chain state on graceful shutdown (SIGINT/SIGTERM)
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+fips205 = { version = "0.4.1", default-features = false, features = ["default-rng", "slh_dsa_shake_256s"] }
+
+[features]
+default = ["tor"]
+tor = []
+mining = []
+
+[[bin]]
+name = "hassan"
+path = "src/main.rs"
+
+[[bin]]
+name = "hassan-wallet"
+path = "src/wallet_cli.rs"
+
+[[bin]]
+name = "hassan-signer"
+path = "src/signer_cli.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

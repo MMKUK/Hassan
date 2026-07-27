@@ -1,0 +1,51 @@
+{
+  "_comment": "Mirror of genesis.toml — compile-time constants in src/genesis.rs are authoritative for consensus.",
+  "chain": {
+    "name": "Hassan",
+    "symbol": "HSN",
+    "chain_id": 16858749123010493047,
+    "version": "0.1.0",
+    "genesis_domain": "hassan-genesis-v31",
+    "founder": "MMK",
+    "slogan": "Knowing"
+  },
+  "consensus": {
+    "type": "GHOSTDAG BlockDAG",
+    "pow_hash": "blake3-512",
+    "block_time_ms": 100,
+    "ghostdag_k": 40,
+    "max_block_size": 22528,
+    "max_block_parents": 10,
+    "daa_window": 661,
+    "finality_depth": 432000,
+    "pruning_depth": 864000,
+    "genesis_timestamp_ms": 1785024000000,
+    "state_format_version": 31,
+    "account_peer_transfers": false,
+    "min_difficulty": 7000,
+    "min_tx_fee": 1000,
+    "min_fee_per_byte": 1,
+    "dust_threshold": 546
+  },
+  "issuance": {
+    "coin": 100000000,
+    "max_supply_coins": 25000000,
+    "block_reward_coins": 50,
+    "halving_interval": 250000,
+    "decimals": 8,
+    "max_supply_base": "2500000000000000",
+    "block_reward_base": "5000000000"
+  },
+  "hardness": {
+    "bootstrap_era_end_coins": 1000000,
+    "bootstrap_min_diff": 7000,
+    "hard_era_min_diff": 16777216,
+    "lab_easy_diff": 7000,
+    "lab_easy_env": "HASSAN_BOOTSTRAP_EASY"
+  },
+  "cryptography": {
+    "signatures": "ML-DSA-87 (FIPS 204) over Blake3-512",
+    "wire_encryption": "Noise XX + ML-KEM-768 PSK (HN/DL) + ML-DSA channel-bound peer auth",
+    "digests": "Blake3 XOF 512-bit"
+  }
+}

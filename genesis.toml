@@ -1,0 +1,77 @@
+# Hassan genesis — canonical chain parameters.
+#
+# This file is the human-readable source of truth. The binary does NOT load it
+# at runtime (that would allow fork-by-config). Values are mirrored as compile-
+# time constants in `src/genesis.rs`. A unit test asserts the two stay in sync.
+#
+# HALVING_INTERVAL is short vs multi-year production calendars.
+#
+# v31 — Kaspa-class economic finality (432000 blues ≈ 12 h), blue-work weighted
+# DAA window 661, hop DAA clamp anchors. PoW eras unchanged. Wipe chainstate.bin.
+
+[chain]
+name       = "Hassan"
+symbol     = "HSN"
+chain_id   = 16858749123010493047
+version    = "0.1.0"
+genesis_domain = "hassan-genesis-v31"
+founder    = "MMK"
+slogan     = "Knowing"
+
+[consensus]
+type                 = "GHOSTDAG BlockDAG"
+pow_hash             = "blake3-512"
+block_time_ms        = 100
+ghostdag_k           = 40
+max_block_size       = 22528
+max_block_parents    = 10
+daa_window           = 661
+finality_depth       = 432000
+pruning_depth        = 864000
+genesis_timestamp_ms = 1785024000000
+state_format_version = 31
+min_difficulty        = 7000
+min_tx_fee            = 1000
+min_fee_per_byte      = 1
+dust_threshold        = 546
+account_peer_transfers = false
+
+[issuance]
+# 8 decimal places (BTC-like). Geometric sum of halvings = exactly 25_000_000 HSN:
+#   2 × BLOCK_REWARD_COINS × HALVING_INTERVAL = 2 × 50 × 250_000 = 25_000_000
+coin                 = 100000000
+max_supply_coins     = 25000000
+block_reward_coins   = 50
+halving_interval     = 250000
+decimals             = 8
+
+[hardness]
+# Default consensus: bootstrap floor until 1M HSN minted, then hard 2^24.
+# Optional: HASSAN_BOOTSTRAP_EASY=1 keeps bootstrap floor after 1M (peers must match).
+bootstrap_era_end_coins = 1000000
+bootstrap_min_diff       = 7000
+hard_era_min_diff       = 16777216
+lab_easy_diff           = 7000
+
+[cryptography]
+signatures       = "ML-DSA-87 (FIPS 204) over Blake3-512"
+wire_encryption  = "Noise XX + ML-KEM-768 PSK (HN/DL) + ML-DSA channel-bound peer auth"
+digests          = "Blake3 XOF 512-bit"
+
+[economics]
+# NON-CONSENSUS. Illustrative assumptions feeding the Cost Basis estimate in
+# `src/economics.rs` (the "Economic Entity" model: every block is treated as
+# a full economic instrument — Header, Transactions, Provenance, Custody,
+# Lineage, Finality — not just a data container). Changing these values does
+# NOT change any node's validation of blocks or the chain's history; they are
+# published modeling assumptions (like a mining-profitability calculator),
+# never measured real-world energy/hardware market data.
+assumed_joules_per_hash            = 0.00000005
+assumed_energy_price_usd_per_kwh   = 0.06
+assumed_hardware_cost_usd          = 3000.0
+assumed_hardware_amortization_blk  = 315360000
+assumed_capital_annual_rate        = 0.05
+
+[notes]
+# No premine. Pure PoW subsidy + fee-to-miner. Transparent glass ledger.
+# Chain starts at genesis (height/index 0). Wipe chainstate on v30→v31.
