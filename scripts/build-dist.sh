@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build a local Hassan release package under dist/hassan-<os>-<arch>/.
-# Includes node + wallet binaries, explorer, genesis docs, checksums, and
-# VERSION metadata. Does not claim or configure any global mirror network.
+# Includes node binary, explorer, genesis docs, checksums, and VERSION
+# metadata. Wallet/signer live in MMKUK/Hassan-Wallet.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,40 +36,26 @@ STAGE="${OUT}.staging.$$"
 rm -rf "$STAGE"
 mkdir -p "$STAGE/bin" "$STAGE/explorer" "$STAGE/docs" "$STAGE/scripts"
 
-echo "==> cargo build --release (hassan + hassan-wallet + hassan-signer)"
-cargo build --release --bin hassan --bin hassan-wallet --bin hassan-signer
+echo "==> cargo build --release (hassan)"
+cargo build --release --bin hassan
 
 NODE_BIN="$CARGO_TARGET_DIR/release/hassan"
-WALLET_BIN="$CARGO_TARGET_DIR/release/hassan-wallet"
-SIGNER_BIN="$CARGO_TARGET_DIR/release/hassan-signer"
 if [[ "$OS" == "windows" ]]; then
   NODE_BIN="${NODE_BIN}.exe"
-  WALLET_BIN="${WALLET_BIN}.exe"
-  SIGNER_BIN="${SIGNER_BIN}.exe"
 fi
 test -f "$NODE_BIN" || { echo "missing $NODE_BIN"; exit 1; }
-test -f "$WALLET_BIN" || { echo "missing $WALLET_BIN"; exit 1; }
-test -f "$SIGNER_BIN" || { echo "missing $SIGNER_BIN"; exit 1; }
 
 NODE_NAME="hassan"
-WALLET_NAME="hassan-wallet"
-SIGNER_NAME="hassan-signer"
 if [[ "$OS" == "windows" ]]; then
   NODE_NAME="hassan.exe"
-  WALLET_NAME="hassan-wallet.exe"
-  SIGNER_NAME="hassan-signer.exe"
 fi
 
 cp -f "$NODE_BIN" "$STAGE/bin/$NODE_NAME"
-cp -f "$WALLET_BIN" "$STAGE/bin/$WALLET_NAME"
-cp -f "$SIGNER_BIN" "$STAGE/bin/$SIGNER_NAME"
-chmod +x "$STAGE/bin/$NODE_NAME" "$STAGE/bin/$WALLET_NAME" "$STAGE/bin/$SIGNER_NAME" 2>/dev/null || true
+chmod +x "$STAGE/bin/$NODE_NAME" 2>/dev/null || true
 
-# Flat aliases at package root (convenient for run-node.sh)
+# Flat alias at package root (convenient for run-node.sh)
 cp -f "$STAGE/bin/$NODE_NAME" "$STAGE/$NODE_NAME"
-cp -f "$STAGE/bin/$WALLET_NAME" "$STAGE/$WALLET_NAME"
-cp -f "$STAGE/bin/$SIGNER_NAME" "$STAGE/$SIGNER_NAME"
-chmod +x "$STAGE/$NODE_NAME" "$STAGE/$WALLET_NAME" "$STAGE/$SIGNER_NAME" 2>/dev/null || true
+chmod +x "$STAGE/$NODE_NAME" 2>/dev/null || true
 
 cp -f scripts/run-node.sh "$STAGE/run-node.sh"
 cp -f scripts/run-node.cmd "$STAGE/run-node.cmd"
@@ -138,7 +124,7 @@ cat > "$STAGE/VERSION.json" <<EOF
   "genesis_domain": "${GENESIS_DOMAIN}",
   "pow_algo": "blake3-512",
   "layout": {
-    "bin": ["bin/${NODE_NAME}", "bin/${WALLET_NAME}", "bin/${SIGNER_NAME}"],
+    "bin": ["bin/${NODE_NAME}"],
     "explorer": "explorer/",
     "docs": ["docs/NODE.md", "docs/SECURITY.md", "docs/INDEXER.md", "docs/RELEASE.md"],
     "genesis": "genesis.toml"
@@ -164,7 +150,7 @@ Hassan node package (${OS}-${ARCH})
 
 Layout
 ------
-  hassan / hassan-wallet   — binaries (also under bin/)
+  hassan                   — node binary (also under bin/)
   run-node.sh / run-node.cmd
   explorer/                — Hassan Explorer (HTML/JS/CSS)
   genesis.toml             — consensus parameters (documentation)
@@ -193,13 +179,10 @@ Standalone explorer (optional / CDN)
   to set the node API base (e.g. http://127.0.0.1:8080). Static assets
   are served with Cache-Control when embedded in the node.
 
-CLI wallet
-----------
-  ./hassan-wallet new my-wallet.json
-  ./hassan-wallet address my-wallet.json
-  ./hassan-wallet balance hsn:ADDR 127.0.0.1:8080
-  ./hassan-wallet mine [API] [max_hashes]   # Blake3-512 light mine (CPU/laptop)
-  ./hassan-wallet help
+Wallet / signer
+---------------
+  Not in this package. See https://github.com/MMKUK/Hassan-Wallet
+  for hassan-wallet, hassan-signer, and the watch web UI.
 
 Mining (CPU / laptop / mobile-friendly path)
 --------------------------------------------
@@ -217,7 +200,7 @@ Verify this package (Monero-style checksums)
   sha256sum -c SHA256SUMS              # Linux
 
   Optional: SHA256SUMS.asc (GPG), SHA256SUMS.sig (SSH/cosign),
-  or SHA256SUMS.abs.json (hassan-signer ML-DSA ABS) when the release is signed.
+  or SHA256SUMS.abs.json (Hassan-Wallet hassan-signer ML-DSA ABS) when signed.
 
 See docs/NODE.md, docs/RELEASE.md, and docs/INDEXER.md.
 This folder is a local build artifact — not a worldwide release mirror.
@@ -250,15 +233,22 @@ elif [[ -n "${HASSAN_DIST_GPG_KEY:-}" ]] && command -v gpg >/dev/null 2>&1; then
   echo "==> gpg signing SHA256SUMS"
   gpg --detach-sign --armor -u "$HASSAN_DIST_GPG_KEY" -o "$STAGE/SHA256SUMS.asc" "$STAGE/SHA256SUMS"
   SIGNED_FLAG=1
-elif [[ -n "${HASSAN_DIST_SIGNER_KEYSTORE:-}" && -x "$STAGE/$SIGNER_NAME" ]]; then
+elif [[ -n "${HASSAN_DIST_SIGNER_KEYSTORE:-}" ]]; then
+  SIGNER_BIN=""
+  if command -v hassan-signer >/dev/null 2>&1; then SIGNER_BIN=hassan-signer
+  elif [[ -x "${HASSAN_SIGNER_BIN:-}" ]]; then SIGNER_BIN="$HASSAN_SIGNER_BIN"
+  fi
+  if [[ -z "$SIGNER_BIN" ]]; then
+    echo "HASSAN_DIST_SIGNER_KEYSTORE set but hassan-signer not on PATH (build MMKUK/Hassan-Wallet)" >&2
+    exit 1
+  fi
   echo "==> hassan-signer ABS signing SHA256SUMS (HASSAN_DIST_SIGNER_KEYSTORE)"
-  # Domain binds the sums file; message is raw SHA256SUMS bytes (hex for sign-hex).
   SUMS_HEX="$(xxd -p -c 256 "$STAGE/SHA256SUMS" | tr -d '\n')"
   if [[ -z "${HASSAN_WALLET_PASSWORD:-}" && "${HASSAN_DIST_SIGNER_INSECURE:-}" != "1" ]]; then
     echo "set HASSAN_WALLET_PASSWORD for the release keystore, or HASSAN_DIST_SIGNER_INSECURE=1" >&2
     exit 1
   fi
-  "$STAGE/$SIGNER_NAME" sign-hex hassan-dist-sha256sums "$SUMS_HEX" \
+  "$SIGNER_BIN" sign-hex hassan-dist-sha256sums "$SUMS_HEX" \
     "$HASSAN_DIST_SIGNER_KEYSTORE" > "$STAGE/SHA256SUMS.abs.json"
   SIGNED_FLAG=1
 else
@@ -279,7 +269,6 @@ if [[ -x "$STAGE/$NODE_NAME" ]] || [[ -f "$STAGE/$NODE_NAME" ]]; then
   # Record binary sizes for operators
   {
     echo "node_bytes=$(wc -c < "$STAGE/$NODE_NAME" | tr -d ' ')"
-    echo "wallet_bytes=$(wc -c < "$STAGE/$WALLET_NAME" | tr -d ' ')"
   } >> "$STAGE/VERSION.txt"
 fi
 

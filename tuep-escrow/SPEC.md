@@ -9,7 +9,7 @@ No bank, admin key, or status-only “Locked” state can move funds.
 |-------|------|
 | `tuep-escrow` | LAW — types, clocks, payout vectors, typed events, state machine |
 | Hassan `bdpe` adapter | VAULT — UTXO `Or(MultiSig 2-of-2, AbsoluteLock buyer@timeout)` |
-| `hassan-wallet` | tutorial / open / fund / settle / refund / timeout-claim / status / history |
+| `hassan-wallet` ([Hassan-Wallet](https://github.com/MMKUK/Hassan-Wallet)) | tutorial / open / fund / settle / refund / timeout-claim / status / history |
 | Indexer / explorer | MIRROR — `#/escrow` lists vaults / registry escrows (history only) |
 
 Peer value under v27+ is UTXO-first. Registry escrow is title/account overlay and

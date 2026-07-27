@@ -35,7 +35,7 @@ if [[ -f SHA256SUMS.abs.json ]]; then
     "$SIGNER_BIN" verify-hex hassan-dist-sha256sums "$SUMS_HEX" SHA256SUMS.abs.json
     SIGNED=1
   else
-    echo "SHA256SUMS.abs.json present but hassan-signer binary not found in package" >&2
+    echo "SHA256SUMS.abs.json present but hassan-signer not found (install MMKUK/Hassan-Wallet)" >&2
     exit 1
   fi
 elif [[ -f SHA256SUMS.sig ]]; then

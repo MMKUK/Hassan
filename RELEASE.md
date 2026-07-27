@@ -33,7 +33,7 @@ shasum -a 256 -c SHA256SUMS  # macOS
 | GPG | `HASSAN_DIST_GPG_KEY=<key-id>` → `SHA256SUMS.asc` |
 | SSH | `HASSAN_DIST_SSH_KEY=path` → `SHA256SUMS.sig` |
 | Cosign | `COSIGN_KEY=path` → `SHA256SUMS.sig` |
-| Hassan ML-DSA | `HASSAN_DIST_SIGNER_KEYSTORE=release.json` + `HASSAN_WALLET_PASSWORD` → `SHA256SUMS.abs.json` |
+| Hassan ML-DSA | Install `hassan-signer` from Hassan-Wallet; `HASSAN_DIST_SIGNER_KEYSTORE=release.json` + `HASSAN_WALLET_PASSWORD` → `SHA256SUMS.abs.json` |
 
 Example (PQ signer):
 

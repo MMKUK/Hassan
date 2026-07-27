@@ -22,8 +22,7 @@ Transparent settlement BlockDAG — ML-DSA-87 · Blake3-512 · GHOSTDAG.
 | **Tor dials** | Optional SOCKS5 outbound for P2P (`.onion` peers) |
 | **Fail-closed state** | Corrupt `chainstate.bin` exits — does not silently wipe the ledger |
 | **Cheap node roles** | `archive` · `validator` · `light` for ordinary machines |
-| **Wallet + signer** | Encrypted keystore CLI; offline `hassan-signer` for ABS signatures |
-| **Glass explorer** | Embedded UI: blocks, wallet watch, escrow storyboard |
+| **Glass explorer** | Embedded UI: blocks, escrow storyboard, chain analytics |
 | **Honest security docs** | `SECURITY.md` maps real vs not-implemented claims |
 
 | | |
@@ -37,22 +36,15 @@ Transparent settlement BlockDAG — ML-DSA-87 · Blake3-512 · GHOSTDAG.
 ## Build
 
 ```bash
-cargo build --release --bin hassan --bin hassan-wallet --bin hassan-signer
+cargo build --release --bin hassan
 ```
 
 | Binary | Role |
 |--------|------|
 | `hassan` | Node (archive / validator / light) |
-| `hassan-wallet` | Wallet CLI (balance, send, escrow) |
-| `hassan-signer` | Offline key + ML-DSA-87 sign / verify |
 
-```bash
-# Offline signer
-export HASSAN_WALLET_PASSWORD='secret'
-./target/release/hassan-signer new keys.json
-./target/release/hassan-signer sign hassan-doc "hello" keys.json > sig.json
-./target/release/hassan-signer verify hassan-doc "hello" sig.json
-```
+Wallet, offline signer, and watch web UI live in a **separate** repo:
+[MMKUK/Hassan-Wallet](https://github.com/MMKUK/Hassan-Wallet).
 
 ## Node roles
 
@@ -74,14 +66,10 @@ export HASSAN_API_TOKEN="$(openssl rand -hex 32)"
 unauth writes, relax-net, and bootstrap-easy are refused; API still defaults to
 `127.0.0.1` (set `--api-bind` only when you intend remote HTTP).
 
-Wallet: `./target/release/hassan-wallet --help`  
-
 **Simple guides (start here):**
 
 - [`GUIDE-NODE.md`](GUIDE-NODE.md) — run a node  
-- [`GUIDE-WALLET.md`](GUIDE-WALLET.md) — keys, balance, send  
-- [`GUIDE-SIGNER.md`](GUIDE-SIGNER.md) — offline sign / verify  
-- [`GUIDE-ESCROW.md`](GUIDE-ESCROW.md) — peer escrow  
+- [`GUIDE-ESCROW.md`](GUIDE-ESCROW.md) — peer escrow (signing via Hassan-Wallet)  
 
 More detail: [`NODE.md`](NODE.md) · [`PUBLIC.md`](PUBLIC.md) · [`SECURITY.md`](SECURITY.md) · [`OPERATORS.md`](OPERATORS.md) · [`RELEASE.md`](RELEASE.md) · [`QUALITIES.md`](QUALITIES.md)
 

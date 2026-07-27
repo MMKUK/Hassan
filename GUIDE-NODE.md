@@ -102,7 +102,7 @@ Useful env vars:
 
 1. Terminal prints height / blue score every few seconds  
 2. Browser: `http://127.0.0.1:8080/` → Home shows height  
-3. Wallet: `hassan-wallet network` shows the same genesis / chain hash  
+3. Wallet (Hassan-Wallet repo): `hassan-wallet network` shows the same genesis / chain hash  
 
 ---
 

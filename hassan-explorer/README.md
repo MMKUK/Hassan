@@ -8,7 +8,6 @@ binary and shippable as static files.
 | Route | Purpose |
 |-------|---------|
 | `#/` | Home overview |
-| `#/wallet` | Blue-card watch wallet (read-only API) |
 | `#/escrow` | Cartoon guide + live vaults |
 | `#/blocks` | Block list / detail |
 | `#/mempool` | Pending transfers |
@@ -22,8 +21,8 @@ Open Wallet / Escrow from the top nav, or Home CTAs.
 ```bash
 cargo build --release --bin hassan && ./target/release/hassan
 # → http://127.0.0.1:8080/
-# → http://127.0.0.1:8080/#/wallet
+# → http://127.0.0.1:8080/
 # → http://127.0.0.1:8080/#/escrow
 ```
 
-Escrow signing: `hassan-wallet` (see `ESCROW.md`).
+Escrow signing: [Hassan-Wallet](https://github.com/MMKUK/Hassan-Wallet) (`hassan-wallet`).

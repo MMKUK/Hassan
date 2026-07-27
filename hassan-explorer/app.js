@@ -1,6 +1,6 @@
 /* Hassan Explorer — standalone client, talks to any Hassan node's JSON API.
  * No build step, no dependencies. Hash-routed: #/, #/blocks, #/block/:id,
- * #/address/:addr, #/fees, #/pruning, #/registry, #/escrow, #/wallet, #/tx/:hash.
+ * #/address/:addr, #/fees, #/pruning, #/registry, #/escrow, #/tx/:hash.
  */
 const $ = (id) => document.getElementById(id);
 
@@ -242,10 +242,9 @@ async function viewHome(gen) {
   <div class="hero">
     <div class="hero-in">
       <div class="hero-brand">Hassan</div>
-      <p class="hero-lead">Blocks, wallet, and peer escrow — live from the node you connect.</p>
+      <p class="hero-lead">Blocks and peer escrow — live from the node you connect.</p>
       <div class="hero-cta">
         <a class="btn primary" href="#/blocks">Blocks</a>
-        <a class="btn" href="#/wallet">Wallet</a>
         <a class="btn" href="#/escrow">Escrow</a>
       </div>
       <div class="hero-search">
@@ -700,7 +699,7 @@ async function viewRegistry(gen) {
   <div class="section" style="padding-top:22px">
     <div class="breadcrumb"><a href="#/">Overview</a> / Registry</div>
     <div class="page-title"><span class="pi">${icon(IC.lock)}</span><h1>Titles &amp; escrow</h1></div>
-    <p class="lead-note">Title deeds and registry escrow are on-ledger. Peer UTXO escrow lives under <a href="#/escrow">Escrow</a>; inspect balances and vaults for an address on <a href="#/wallet">Wallet</a>.</p>
+    <p class="lead-note">Title deeds and registry escrow are on-ledger. Peer UTXO escrow lives under <a href="#/escrow">Escrow</a>; inspect balances via address search.</p>
     <div class="card">
       <h3>BDPE vaults (UTXO) <span class="r">${commas(vaultList.length)} · <a href="#/escrow">Escrow tab</a></span></h3>
       <div class="scroll"><table><thead><tr><th>Outpoint</th><th>Buyer</th><th>Seller</th><th>Value</th><th>Timeout blue</th><th>Reached</th></tr></thead>
@@ -719,278 +718,6 @@ async function viewRegistry(gen) {
   </div>`;
   setFootMeta(s);
 }
-
-const WALLET_ADDR_KEY = 'hassan-explorer-wallet-addr';
-function getWatchedAddr() { return (localStorage.getItem(WALLET_ADDR_KEY) || '').trim(); }
-function setWatchedAddr(a) {
-  a = (a || '').trim();
-  if (a) localStorage.setItem(WALLET_ADDR_KEY, a);
-  else localStorage.removeItem(WALLET_ADDR_KEY);
-}
-function vaultStatusBadge(v) {
-  const reached = !!(v.timeout_reached || v.status === 'timeout_reached' || v.status === 'claimable');
-  if (reached) return '<span class="badge b-era-easy">claimable</span>';
-  return '<span class="badge b-era-ramp">funded</span>';
-}
-function vaultRowsHtml(vaultList, emptyMsg) {
-  return vaultList.map((v) => {
-    const out = v.txid != null ? `${esc(v.txid)}:${v.vout}` : '';
-    const outCell = v.txid
-      ? `<a class="mono" href="#/tx/${esc(v.txid)}" title="${out}">${short(v.txid)}:${v.vout}</a>${cp(out)}`
-      : '—';
-    return `<tr>
-      <td>${outCell}</td>
-      <td class="mono">${ownerMark(v.buyer)}</td>
-      <td class="mono">${ownerMark(v.seller)}</td>
-      <td class="mono">${hsn(v.value)} HSN</td>
-      <td class="mono">${commas(v.timeout_blue)}${v.media_blue != null ? `<div class="mut" style="font-size:11px">tip ${commas(v.media_blue)}</div>` : ''}</td>
-      <td>${vaultStatusBadge(v)}</td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="6" class="empty">${emptyMsg}</td></tr>`;
-}
-
-async function viewEscrow(gen) {
-  const [vaults, escrows, s] = await Promise.all([
-    j('/api/v1/bdpe/vaults').catch(() => []),
-    j('/api/v1/escrows').catch(() => []),
-    j('/api/v1/status'),
-  ]);
-  statusCache = s;
-  if (gen !== renderGen) return;
-  const vaultList = Array.isArray(vaults) ? vaults : [];
-  const escrowList = Array.isArray(escrows) ? escrows : [];
-  $('app').innerHTML = `
-  <div class="section">
-    <div class="hero-glass">
-      <h1>Peer escrow</h1>
-      <p>No bank holds the money. Hassan locks HSN in a vault that only buyer + seller can open together — or the buyer reclaims after the timeout.</p>
-    </div>
-
-    <div class="story" aria-label="How escrow works">
-      <div class="story-step">
-        <span class="n">1</span>
-        <svg viewBox="0 0 88 72" fill="none" aria-hidden="true">
-          <rect x="18" y="14" width="52" height="44" rx="10" fill="#e8f2ff" stroke="#1a56db" stroke-width="2"/>
-          <circle cx="34" cy="36" r="8" fill="#0a2540"/>
-          <circle cx="54" cy="36" r="8" fill="#3d9cf0"/>
-          <path d="M42 36h4" stroke="#94a3b8" stroke-width="2"/>
-        </svg>
-        <h4>Agree</h4>
-        <p>Buyer and seller open terms (amount + timeout).</p>
-      </div>
-      <div class="story-step">
-        <span class="n">2</span>
-        <svg viewBox="0 0 88 72" fill="none" aria-hidden="true">
-          <rect x="28" y="18" width="32" height="38" rx="6" fill="#0a2540"/>
-          <rect x="34" y="28" width="20" height="14" rx="3" fill="#3d9cf0"/>
-          <path d="M44 12v8M44 54v6" stroke="#0a84ff" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="44" cy="42" r="3" fill="#fff"/>
-        </svg>
-        <h4>Fund</h4>
-        <p>Buyer publishes the vault — HSN locks on-chain.</p>
-      </div>
-      <div class="story-step">
-        <span class="n">3</span>
-        <svg viewBox="0 0 88 72" fill="none" aria-hidden="true">
-          <circle cx="30" cy="36" r="12" fill="#e8f2ff" stroke="#1a56db" stroke-width="2"/>
-          <circle cx="58" cy="36" r="12" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
-          <path d="M38 36h12" stroke="#64748b" stroke-width="2" stroke-dasharray="3 3"/>
-          <path d="M52 32l6 4-6 4" fill="#0d9488"/>
-        </svg>
-        <h4>Settle</h4>
-        <p>Both sign to pay the seller — or refund the buyer.</p>
-      </div>
-      <div class="story-step">
-        <span class="n">4</span>
-        <svg viewBox="0 0 88 72" fill="none" aria-hidden="true">
-          <circle cx="44" cy="36" r="20" fill="#e8f2ff" stroke="#0a84ff" stroke-width="2"/>
-          <path d="M44 22v14l8 5" stroke="#0a2540" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-        <h4>Or timeout</h4>
-        <p>If stuck, buyer reclaims alone after the blue-score clock.</p>
-      </div>
-    </div>
-
-    <div class="policy-strip">
-      <div class="policy-card">
-        <h4>Glass ledger</h4>
-        <p>Every vault is public. Indexer history is a mirror — consensus spend is the verdict.</p>
-      </div>
-      <div class="policy-card">
-        <h4>Sign offline</h4>
-        <p>Use <code>hassan-wallet escrow …</code> to open, fund, settle. This page only shows live state.</p>
-      </div>
-    </div>
-
-    <div class="help-actions" style="margin-bottom:18px">
-      <a class="btn primary" href="#/wallet">Open Wallet</a>
-      <button type="button" class="btn" id="escrowRefresh">Refresh</button>
-    </div>
-
-    <div class="card">
-      <h3>Live vaults <span class="r">${commas(vaultList.length)}</span></h3>
-      <div class="scroll"><table><thead><tr><th>Outpoint</th><th>Buyer</th><th>Seller</th><th>Value</th><th>Timeout</th><th>Status</th></tr></thead>
-      <tbody>${vaultRowsHtml(vaultList, 'No funded vaults yet.')}</tbody></table></div>
-    </div>
-    <div class="card">
-      <h3>Registry escrows <span class="r">${commas(escrowList.length)}</span></h3>
-      <div class="scroll"><table><thead><tr><th>ID</th><th>Buyer</th><th>Seller</th><th>Amount</th><th>Funded</th><th>Status</th></tr></thead>
-      <tbody>${escrowList.map((e) => {
-        const st = String(e.status || '').toLowerCase();
-        const badge = st === 'funded' ? 'b-era-ramp'
-          : (st === 'released' || st === 'refunded') ? 'b-ok'
-          : st === 'open' ? 'b-sh' : 'b-era-ramp';
-        return `<tr>
-        <td class="mono mut" title="${esc(e.escrow_id)}">${short(e.escrow_id)}${e.escrow_id ? cp(e.escrow_id) : ''}</td>
-        <td class="mono">${ownerMark(e.buyer)}</td>
-        <td class="mono">${ownerMark(e.seller)}</td>
-        <td class="mono">${hsn(e.amount)}</td>
-        <td class="mono">${e.funded != null ? hsn(e.funded) : '—'}</td>
-        <td><span class="badge ${badge}">${esc(e.status || '—')}</span></td>
-      </tr>`;
-      }).join('') || '<tr><td colspan="6" class="empty">none</td></tr>'}</tbody></table></div>
-    </div>
-  </div>`;
-  setFootMeta(s);
-  const refresh = $('escrowRefresh');
-  if (refresh) refresh.addEventListener('click', () => router());
-}
-
-async function viewWallet(gen) {
-  const watched = getWatchedAddr();
-  const [s, fees] = await Promise.all([
-    j('/api/v1/status').catch(() => null),
-    j('/api/v1/fee/estimate').catch(() => null),
-  ]);
-  if (s) statusCache = s;
-  if (gen !== renderGen) return;
-
-  let acct = null, utxos = [], vaults = [], loadErr = null;
-  if (watched) {
-    try {
-      const [a, u, v] = await Promise.all([
-        j('/api/v1/account/' + encAddr(watched)),
-        j('/api/v1/utxos/' + encAddr(watched)).catch(() => ({ utxos: [] })),
-        j('/api/v1/bdpe/vaults?address=' + encodeURIComponent(watched)).catch(() => []),
-      ]);
-      if (gen !== renderGen) return;
-      acct = a;
-      utxos = (u && u.utxos) || [];
-      vaults = Array.isArray(v) ? v : [];
-    } catch (e) {
-      loadErr = e && e.message ? e.message : 'lookup failed';
-    }
-  }
-
-  const utxoSum = utxos.reduce((acc, o) => { try { return acc + BigInt(o.value || 0); } catch (_) { return acc; } }, 0n);
-  const bal = acct && acct.utxo_value != null ? acct.utxo_value : utxoSum.toString();
-  const addrShow = (acct && acct.address) || watched;
-
-  $('app').innerHTML = `
-  <div class="section">
-    <div class="bw-shell">
-      <div class="bw-session">
-        <label for="walletAddr">Watch address</label>
-        <input id="walletAddr" class="mono wallet-input" spellcheck="false" autocomplete="off" placeholder="hsn1…" value="${esc(watched)}">
-        <div class="wallet-actions">
-          <button type="button" class="btn primary" id="walletLoad">Load</button>
-          <button type="button" class="btn ghost" id="walletClear"${watched ? '' : ' disabled'}>Clear</button>
-          <label class="btn wallet-file-btn"><input type="file" id="walletFile" accept=".json,application/json" hidden>Import address</label>
-        </div>
-        <p class="wallet-hint">Read-only. Import uses the keystore <code>address</code> field only — keys never enter the browser.</p>
-      </div>
-
-      ${!watched ? `<div class="card"><div class="pad"><p class="empty" style="margin:0">Load an address to see balance and vaults.</p></div></div>` : ''}
-      ${loadErr ? `<div class="card"><div class="pad"><p class="err" style="margin:0">${esc(loadErr)}</p></div></div>` : ''}
-
-      ${watched && !loadErr ? `
-      <div class="bw-card">
-        <div class="bw-label">Available</div>
-        <div class="bw-balance">${hsn(bal)}</div>
-        <div class="bw-sub">HSN · UTXO</div>
-        <div class="bw-addr" title="${esc(addrShow)}">${esc(addrShow)} ${cp(addrShow)}</div>
-      </div>
-      <div class="bw-actions">
-        <a class="btn primary" href="#/escrow">Escrow</a>
-        <a class="btn" href="#/address/${encAddr(addrShow)}">Details</a>
-        <a class="btn ghost" href="#/fees">Fees</a>
-      </div>
-      <div class="card">
-        <h3>Coins <span class="r">${commas(utxos.length)}</span></h3>
-        <div class="scroll"><table><thead><tr><th>Outpoint</th><th>Value</th></tr></thead>
-        <tbody>${utxos.map((o) => `<tr>
-          <td class="mono mut">${short(o.txid)}:${o.vout}${o.coinbase ? ' <span class="badge b-sh">cb</span>' : ''}</td>
-          <td class="mono">${hsn(o.value)}</td>
-        </tr>`).join('') || '<tr><td colspan="2" class="empty">no coins</td></tr>'}</tbody></table></div>
-      </div>
-      <div class="card">
-        <h3>Your vaults <span class="r">${commas(vaults.length)}</span></h3>
-        <div class="scroll"><table><thead><tr><th>Outpoint</th><th>Parties</th><th>Value</th><th>Timeout</th><th>Status</th></tr></thead>
-        <tbody>${vaults.map((v) => {
-          const out = v.txid != null ? `${esc(v.txid)}:${v.vout}` : '';
-          const outCell = v.txid
-            ? `<a class="mono" href="#/tx/${esc(v.txid)}" title="${out}">${short(v.txid)}:${v.vout}</a>`
-            : '—';
-          return `<tr>
-          <td>${outCell}</td>
-          <td class="mono">${short(v.buyer)} → ${short(v.seller)}</td>
-          <td class="mono">${hsn(v.value)}</td>
-          <td class="mono">${commas(v.timeout_blue)}</td>
-          <td>${vaultStatusBadge(v)}</td>
-        </tr>`;
-        }).join('') || '<tr><td colspan="5" class="empty">no vaults</td></tr>'}</tbody></table></div>
-      </div>
-      ${fees ? `<div class="card"><h3>Network fee</h3><div class="pad">
-        <div class="fee-row"><span>Low</span><span class="mono">${hsn(fees.low)}</span></div>
-        <div class="fee-row"><span>Medium</span><span class="mono">${hsn(fees.medium)}</span></div>
-        <div class="fee-row"><span>High</span><span class="mono">${hsn(fees.high)}</span></div>
-      </div></div>` : ''}
-      ${acct && acct.balance != null && BigInt(acct.balance || 0) > 0n ? `<div class="card"><div class="pad mut" style="font-size:12.5px">Overlay account balance: <span class="mono">${hsn(acct.balance)}</span> HSN (registry / custody only)</div></div>` : ''}
-      ` : ''}
-    </div>
-  </div>`;
-  setFootMeta(s || statusCache);
-
-  const applyAddr = (addr) => {
-    addr = (addr || '').trim();
-    if (!addr) { toast('enter an address'); return; }
-    setWatchedAddr(addr);
-    const onWallet = (location.hash.replace(/^#\/?/, '').split(/[/?#]/)[0] || '') === 'wallet';
-    if (onWallet) router();
-    else location.hash = '#/wallet';
-  };
-  const loadBtn = $('walletLoad');
-  if (loadBtn) loadBtn.addEventListener('click', () => applyAddr($('walletAddr').value));
-  const addrInput = $('walletAddr');
-  if (addrInput) addrInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyAddr(addrInput.value); });
-  const clearBtn = $('walletClear');
-  if (clearBtn) clearBtn.addEventListener('click', () => {
-    setWatchedAddr('');
-    const onWallet = (location.hash.replace(/^#\/?/, '').split(/[/?#]/)[0] || '') === 'wallet';
-    if (onWallet) router();
-    else location.hash = '#/wallet';
-  });
-  const fileInput = $('walletFile');
-  if (fileInput) {
-    fileInput.addEventListener('change', async () => {
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) return;
-      try {
-        const text = await f.text();
-        const json = JSON.parse(text);
-        const addr = (json && json.address) ? String(json.address).trim() : '';
-        if (!addr) { toast('no address field'); return; }
-        applyAddr(addr);
-        toast('address loaded');
-      } catch (_) {
-        toast('invalid JSON');
-      } finally {
-        fileInput.value = '';
-      }
-    });
-  }
-}
-
 
 async function viewMempool(gen) {
   const [mp, s] = await Promise.all([j('/api/v1/mempool'), j('/api/v1/status')]);
@@ -1342,7 +1069,6 @@ async function router(opts) {
     else if (seg[0] === 'pruning') await viewPruning(myGen);
     else if (seg[0] === 'registry') await viewRegistry(myGen);
     else if (seg[0] === 'escrow') await viewEscrow(myGen);
-    else if (seg[0] === 'wallet') await viewWallet(myGen);
     else if (seg[0] === 'analytics') await viewAnalytics(myGen);
     else if (seg[0] === 'audit') await viewAudit(myGen);
     else if (seg[0] === 'labels') await viewLabels(myGen);

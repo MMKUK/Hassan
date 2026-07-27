@@ -25,7 +25,7 @@ Version skew → disconnect; invalidity → ban score / IP ban under public mode
 **Chain id** is `u64` LE of the first 8 bytes of `blake3(b"hassan")` (replay
 protection in txs) — e.g. `16858749123010493047`. For wallets, prefer
 **chain_hash**: Blake3-512 hex of `genesis_domain ‖ chain_id ‖ genesis_block_hash`
-from `/api/v1/status` (or `hassan-wallet network`).
+from `/api/v1/status` (or Hassan-Wallet `hassan-wallet network`).
 
 **Addresses** are bech32m `hsn1…` (32-byte Blake3 fingerprint of the ML-DSA-87
 pubkey). Legacy `hsn:<128 hex>` is still accepted.
@@ -41,7 +41,7 @@ pubkey). Legacy `hsn:<128 hex>` is still accepted.
 ```bash
 git clone <YOUR_REPO_URL> Hassan
 cd Hassan
-cargo build --release --bin hassan --bin hassan-wallet
+cargo build --release --bin hassan
 ```
 
 Or use the packager (writes a folder under `dist/`):
@@ -53,12 +53,11 @@ Or use the packager (writes a folder under `dist/`):
 Binaries land in:
 
 - `target/release/hassan` — node (API + miner + optional P2P + explorer)
-- `target/release/hassan-wallet` — CLI wallet (talks to a running node)
 
 Windows (PowerShell, after Rust is installed):
 
 ```powershell
-cargo build --release --bin hassan --bin hassan-wallet
+cargo build --release --bin hassan
 .\scripts\run-node.cmd
 ```
 
@@ -188,10 +187,7 @@ Open API / explorer only on loopback unless you set `HASSAN_API_TOKEN` and inten
 
 ```bash
 export HASSAN_WALLET_PASSWORD='choose-a-strong-secret'
-./target/release/hassan-wallet new my-wallet.json
-./target/release/hassan-wallet address my-wallet.json
-./target/release/hassan-wallet balance hsn:ADDR 127.0.0.1:8080
-./target/release/hassan-wallet help
+# See https://github.com/MMKUK/Hassan-Wallet
 ```
 
 Password is required for `new`. Pass `--insecure` only for throwaway plaintext
@@ -228,7 +224,7 @@ beats a C++ rewrite for this codebase. See `SECURITY.md`.
 - Under bootstrap (before 1M HSN), a single laptop should mine near **~0.10 s**.
 - `GET /api/v1/mining/light?max=50000` — bounded share-difficulty probe (hashrate check).
 - `GET /api/v1/mining/template` + `/api/v1/stratum` — template / stratum helpers (`HASSAN_STRATUM_PASSWORD` required).
-- `hassan-wallet mine [API] [max_hashes]` — CLI light-mine path.
+- Light-mine CLI: Hassan-Wallet `hassan-wallet mine …`
 
 ## Copy a prebuilt binary
 

@@ -12,9 +12,7 @@ pub mod assurance;
 pub mod assume_valid;
 pub mod bdpe;
 pub mod genesis;
-pub mod hd;
 pub mod kernel;
-pub mod keystore;
 pub mod net_policy;
 pub mod node_role;
 pub mod peer_pin;
@@ -4868,7 +4866,6 @@ pub mod registry;
 pub mod security;
 pub mod stark;
 pub mod tor;
-pub mod wallet;
 
 /// Fee-market snapshot returned by [`ChainState::estimate_fee`]. All values
 /// are in base units (same as [`TransparentTx::fee`]), floored at the live

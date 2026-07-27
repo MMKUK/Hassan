@@ -5,7 +5,7 @@
 You need:
 
 1. A running node (`GUIDE-NODE.md`)  
-2. Two wallets (`GUIDE-WALLET.md`) — buyer + seller  
+2. Two wallets from [Hassan-Wallet](https://github.com/MMKUK/Hassan-Wallet) — buyer + seller  
 3. Buyer funded with enough HSN + fee  
 
 ---
@@ -41,20 +41,22 @@ Watch live vaults: `http://127.0.0.1:8080/#/escrow`
 
 ## 0. Prepare two wallets
 
+Build wallet tools from [Hassan-Wallet](https://github.com/MMKUK/Hassan-Wallet), then:
+
 ```bash
 # Demo tip: use the SAME password so settle/refund can open both files
 export HASSAN_WALLET_PASSWORD='shared-pass'
-./target/release/hassan-wallet new buyer.json
-./target/release/hassan-wallet new seller.json
+./hassan-wallet new buyer.json
+./hassan-wallet new seller.json
 
-./target/release/hassan-wallet address buyer.json
-./target/release/hassan-wallet address seller.json
+./hassan-wallet address buyer.json
+./hassan-wallet address seller.json
 ```
 
 Fund the **buyer** address (mine on your node, or receive a send). Check:
 
 ```bash
-./target/release/hassan-wallet balance hsn1BUYER…
+./hassan-wallet balance hsn1BUYER…
 ```
 
 If the node uses an API token:
@@ -72,7 +74,7 @@ Timeout is in **blue-score** steps (ask your operator what delay you want).
 
 ```bash
 export HASSAN_WALLET_PASSWORD='shared-pass'
-./target/release/hassan-wallet escrow open \
+./hassan-wallet escrow open \
   hsn1SELLER… \
   100000000 \
   100000 \
@@ -85,7 +87,7 @@ You get an `escrow_id`. Terms are stored in `buyer.json.escrow.json`.
 Interactive tutorial anytime:
 
 ```bash
-./target/release/hassan-wallet escrow tutorial
+./hassan-wallet escrow tutorial
 ```
 
 ---
@@ -94,7 +96,7 @@ Interactive tutorial anytime:
 
 ```bash
 export HASSAN_WALLET_PASSWORD='shared-pass'
-./target/release/hassan-wallet escrow fund ESCROW_ID buyer.json
+./hassan-wallet escrow fund ESCROW_ID buyer.json
 ```
 
 Check:
@@ -113,7 +115,7 @@ for that co-sign step). Easiest clean demo: create buyer and seller with the
 
 ```bash
 export HASSAN_WALLET_PASSWORD='shared-for-cosign'
-./target/release/hassan-wallet escrow settle ESCROW_ID \
+./hassan-wallet escrow settle ESCROW_ID \
   --with seller.json \
   buyer.json
 ```
@@ -124,7 +126,7 @@ export HASSAN_WALLET_PASSWORD='shared-for-cosign'
 
 ```bash
 export HASSAN_WALLET_PASSWORD='shared-for-cosign'
-./target/release/hassan-wallet escrow refund ESCROW_ID \
+./hassan-wallet escrow refund ESCROW_ID \
   --with seller.json \
   buyer.json
 ```
@@ -135,7 +137,7 @@ export HASSAN_WALLET_PASSWORD='shared-for-cosign'
 
 ```bash
 export HASSAN_WALLET_PASSWORD='shared-pass'
-./target/release/hassan-wallet escrow timeout-claim ESCROW_ID buyer.json
+./hassan-wallet escrow timeout-claim ESCROW_ID buyer.json
 ```
 
 Only works after the vault’s timeout blue-score is reached (Explorer shows **claimable**).
@@ -145,10 +147,10 @@ Only works after the vault’s timeout blue-score is reached (Explorer shows **c
 ## 4. Status helpers
 
 ```bash
-./target/release/hassan-wallet escrow status  ESCROW_ID buyer.json
-./target/release/hassan-wallet escrow list    buyer.json
-./target/release/hassan-wallet escrow history ESCROW_ID buyer.json
-./target/release/hassan-wallet escrow vaults
+./hassan-wallet escrow status  ESCROW_ID buyer.json
+./hassan-wallet escrow list    buyer.json
+./hassan-wallet escrow history ESCROW_ID buyer.json
+./hassan-wallet escrow vaults
 ```
 
 ---

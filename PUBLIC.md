@@ -61,7 +61,7 @@ curl -sS -X POST "http://127.0.0.1:8080/api/v1/tx/submit" \
 ## 1. Build
 
 ```bash
-cargo build --release --bin hassan --bin hassan-wallet
+cargo build --release --bin hassan
 ```
 
 Binary: `./target/release/hassan`. Dist packages: `./scripts/build-dist.sh`.
